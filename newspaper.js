@@ -11,7 +11,6 @@ class Newspaper {
         this.cooldownTime = 2000; // 2 seconds cooldown between interactions
         this.detectionRadius = 5; // How close player needs to be to interact
         this.floatHeight = 5;
-        this.font = null; // Store the loaded font
         // Colors
         this.paperColor = 0xf5f5dc; // Beige/off-white for newspaper
         this.textColor = 0x000000; // Black text
@@ -25,26 +24,6 @@ class Newspaper {
         this.articles = [];
         this.reading = false;
         this.activeCooldown = false;
-    }
-
-    // Method to load font
-    loadFont() {
-        return new Promise((resolve, reject) => {
-            const loader = new THREE.FontLoader();
-            loader.load(
-                'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json',
-                (font) => {
-                    this.font = font;
-                    console.log("Font loaded successfully for newspaper");
-                    resolve();
-                },
-                undefined,
-                (error) => {
-                    console.error('Error loading font for newspaper:', error);
-                    reject(error);
-                }
-            );
-        });
     }
 
     // Method to load panda image
@@ -111,11 +90,6 @@ class Newspaper {
         const page = new THREE.Mesh(pageGeometry, pageMaterial);
         newspaperGroup.add(page);
         
-        // Wait for font to load before creating text
-        if (!this.font) {
-            await this.loadFont();
-        }
-
         // Wait for panda image to load
         if (!this.pandaImage) {
             await this.loadPandaImage();
@@ -550,24 +524,22 @@ class Newspaper {
     }
     
     async fetchHackerNews() {
-        try {
-            // Get top story IDs
-            const topStoriesResponse = await fetch('https://hacker-news.firebaseio.com/v0/topstories.json');
-            const storyIds = await topStoriesResponse.json();
-            
-            // Get details for top 20 stories
-            const top10Ids = storyIds.slice(0, 20);
-            const storyPromises = top10Ids.map(id => 
-                fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-                    .then(response => response.json())
-            );
-            
-            const stories = await Promise.all(storyPromises);
-            return stories;
-        } catch (error) {
-            console.error('Error fetching Hacker News:', error);
-            return [];
-        }
+        const now = Math.floor(Date.now() / 1000);
+        return [
+            'Follow the bamboo glow to finish each level.',
+            'Jetpack fuel recharges after you land.',
+            'Trampolines can launch the panda over enemy groups.',
+            'The changing room swaps character models.',
+            'The handheld game contains a playable snake minigame.',
+            'Music pickups rotate through the local soundtrack.',
+            'Snow, rivers and grass change as levels advance.',
+            'Spinning attacks are useful when enemies surround you.'
+        ].map((title, index) => ({
+            id: index + 1,
+            title,
+            time: now - index * 3600,
+            url: '#'
+        }));
     }
     
     async showOverlay() {

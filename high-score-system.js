@@ -1,8 +1,7 @@
 // High Score System for Red Panda Explorer
 class HighScoreSystem {
     constructor() {
-        // Google Apps Script endpoint
-        this.apiUrl = 'https://script.google.com/macros/s/AKfycbyOZIGC6vn3euZOQ_EiIWnIgJkekJ1ZC8HLO7LtohfMzXtWZe_OzCkYo8LjuULBpmIF/exec';
+        this.scoreStorageKey = 'redPandaLocalHighScores';
         
         // Cache for high scores to avoid unnecessary API calls
         this.highScores = null;
@@ -298,128 +297,42 @@ class HighScoreSystem {
         });
     }
     
-    // Submit a new score to the Google Sheet
+    // Keep a device-local leaderboard for the self-hosted build.
     async submitScore(username, level) {
-        try {
-            // Convert level to a number to ensure proper comparison in Apps Script
-            const numericLevel = parseInt(level);
-            
-            // Log what we're about to send for debugging
-            console.log('Submitting score:', {
-                name: username,
-                level: numericLevel
-            });
-            
-            const response = await fetch(this.apiUrl, {
-                method: 'POST',
-                mode: 'no-cors', // Important for cross-origin requests to GAS
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: username,
-                    level: numericLevel
-                })
-            });
-            
-            console.log('Score submitted successfully');
-            
-            // Add the new score to the local cache optimistically
-            if (this.highScores) {
-                const newScore = {
-                    name: username,
-                    level: numericLevel,
-                    date: new Date().toISOString(),
-                    isCurrentPlayer: true
-                };
-                
-                // Add the new score to the existing scores
-                this.highScores.push(newScore);
-                
-                // Sort the high scores immediately so it appears in the right place
-                this.highScores.sort((a, b) => {
-                    // First sort by level (descending)
-                    if (b.level !== a.level) {
-                        return b.level - a.level;
-                    }
-                    // If date is a string, convert to Date
-                    const dateA = typeof a.date === 'string' ? new Date(a.date) : a.date;
-                    const dateB = typeof b.date === 'string' ? new Date(b.date) : b.date;
-                    return dateA - dateB;
-                });
-            }
-        } catch (error) {
-            console.error('Error submitting score:', error);
-        }
+        const numericLevel = parseInt(level);
+        const newScore = {
+            name: username,
+            level: numericLevel,
+            date: new Date().toISOString(),
+            isCurrentPlayer: true
+        };
+        this.highScores = [...(this.highScores || []), newScore]
+            .sort((a, b) => b.level - a.level || new Date(a.date) - new Date(b.date))
+            .slice(0, 50);
+        localStorage.setItem(this.scoreStorageKey, JSON.stringify(this.highScores));
     }
     
-    // Fetch high scores from the Google Sheet
+    // Load scores without contacting the upstream Google Apps Script.
     async fetchHighScores() {
-        // If already loading scores, return the existing promise
-        if (this.isLoadingScores) {
-            console.log('Already loading scores, waiting for completion...');
-            return this.highScores || [];
-        }
-        
         this.isLoadingScores = true;
-        
         try {
-            console.log('Fetching high scores...');
-            const response = await fetch(`${this.apiUrl}?action=getScores&t=${Date.now()}`); // Add timestamp to prevent caching
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            
-            const data = await response.json();
-            console.log('Fetched scores data:', data);
-            
-            // Store any current player flags before refreshing
-            const currentPlayerScores = [];
-            if (this.highScores) {
-                for (const score of this.highScores) {
-                    if (score.isCurrentPlayer) {
-                        currentPlayerScores.push({
-                            name: score.name,
-                            level: score.level
-                        });
-                    }
-                }
-            }
-            
-            // Transform data to match the expected format
-            this.highScores = data.scores.map(row => ({
-                name: row[0],
-                level: parseInt(row[1]), // Ensure level is a number
-                date: row[2],
-                isCurrentPlayer: false
-            }));
-            
-            // Restore current player flags
-            for (const playerScore of currentPlayerScores) {
-                for (const score of this.highScores) {
-                    if (score.name === playerScore.name && score.level === playerScore.level) {
-                        score.isCurrentPlayer = true;
-                    }
-                }
-            }
-            
-            // Also mark scores that match the current username and personal best
-            if (this.username) {
-                for (const score of this.highScores) {
-                    if (score.name === this.username && score.level === this.personalBest) {
-                        score.isCurrentPlayer = true;
-                    }
-                }
-            }
-            
-            this.isLoadingScores = false;
-            return this.highScores;
+            const stored = JSON.parse(localStorage.getItem(this.scoreStorageKey) || '[]');
+            this.highScores = Array.isArray(stored)
+                ? stored
+                    .filter((score) => score && Number.isFinite(Number(score.level)))
+                    .map((score) => ({
+                        name: String(score.name || 'Panda').slice(0, 20),
+                        level: Number(score.level),
+                        date: score.date || new Date(0).toISOString(),
+                        isCurrentPlayer: score.name === this.username
+                    }))
+                : [];
         } catch (error) {
-            console.error('Error fetching high scores:', error);
-            this.highScores = this.highScores || []; // Keep existing scores on error
-            this.isLoadingScores = false;
-            return this.highScores;
+            console.warn('Could not read local high scores:', error);
+            this.highScores = [];
         }
+        this.isLoadingScores = false;
+        return this.highScores;
     }
     
     // Display high scores in the table

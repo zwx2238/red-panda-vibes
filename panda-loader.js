@@ -54,11 +54,21 @@ function createRedPandaPlayer() {
     
     const params = getUrlParameters();
     let avatarUrl = params.avatarUrl;
+    if (avatarUrl) {
+        try {
+            const resolvedAvatar = new URL(avatarUrl, window.location.href);
+            avatarUrl = resolvedAvatar.origin === window.location.origin
+                ? resolvedAvatar.href
+                : null;
+        } catch {
+            avatarUrl = null;
+        }
+    }
     
     // Determine which loader to use based on avatar URL
     if(avatarUrl && avatarUrl.includes("yacht") ){
         console.log("use custom yacht glb model");
-        avatarUrl = "https://collidingscopes.github.io/red-panda-vibes/assets/customGLB/yacht.glb";
+        avatarUrl = "assets/customGLB/yacht.glb";
         loadGlbModel(avatarUrl, playerGroup, placeholder);
     } else if (avatarUrl && isGlbFile(avatarUrl)) {
         // Use GLTFLoader for GLB files

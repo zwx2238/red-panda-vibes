@@ -11,7 +11,6 @@ class Ipod {
         this.cooldownTime = 2000; // 2 seconds cooldown between interactions
         this.detectionRadius = 6; // How close player needs to be to interact
         this.floatHeight = 6;
-        this.font = null; // Add this to store the loaded font
         // Colors
         this.ipodColor = 0xf4f4f4; // Silver/white
         this.displayColor = 0x666666; // Dark display
@@ -20,26 +19,6 @@ class Ipod {
         this.emojiTextures = []; // Store loaded textures
         this.particleSystem = null;
         this.particleTimeout = null;
-    }
-
-    // Add this method to load the font
-    loadFont() {
-        return new Promise((resolve, reject) => {
-            const loader = new THREE.FontLoader();
-            loader.load(
-                'https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', // Default Three.js font
-                (font) => {
-                    this.font = font;
-                    console.log("Helvetiker font loaded successfully");
-                    resolve();
-                },
-                undefined,
-                (error) => {
-                    console.error('Error loading font:', error);
-                    reject(error);
-                }
-            );
-        });
     }
 
     async createIpodModel() {
@@ -73,38 +52,28 @@ class Ipod {
         display.position.set(0, 0.8 * scaleFactor, 0.35 * scaleFactor);
         ipodGroup.add(display);
 
-        // Wait for font to load before creating text
-        if (!this.font) {
-            await this.loadFont();
-        }
-
-        // Add "DJ PANDA" text
-        const textGeometry = new THREE.TextGeometry('DJ PANDA', {
-            font: this.font,
-            size: 0.3 * scaleFactor,  // Adjust size to fit screen
-            height: 0.02 * scaleFactor,  // Thickness of text
-            curveSegments: 12,
-            bevelEnabled: false
+        const labelCanvas = document.createElement('canvas');
+        labelCanvas.width = 512;
+        labelCanvas.height = 192;
+        const labelContext = labelCanvas.getContext('2d');
+        labelContext.clearRect(0, 0, labelCanvas.width, labelCanvas.height);
+        labelContext.fillStyle = '#ff69b4';
+        labelContext.font = 'bold 72px sans-serif';
+        labelContext.textAlign = 'center';
+        labelContext.textBaseline = 'middle';
+        labelContext.fillText('DJ PANDA', 256, 96);
+        const labelTexture = new THREE.CanvasTexture(labelCanvas);
+        labelTexture.needsUpdate = true;
+        const labelMaterial = new THREE.MeshBasicMaterial({
+            map: labelTexture,
+            transparent: true
         });
-
-        const textMaterial = new THREE.MeshBasicMaterial({
-            color: 0xFF69B4  // Pink color
-        });
-
-        const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-        
-        // Center the text on the screen
-        textGeometry.computeBoundingBox();
-        const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
-        const textHeight = textGeometry.boundingBox.max.y - textGeometry.boundingBox.min.y;
-        
-        textMesh.position.set(
-            -textWidth / 2,           // Center horizontally
-            0.8 * scaleFactor - textHeight / 2,  // Center vertically on screen
-            0.4 * scaleFactor         // Slightly above display surface
+        const label = new THREE.Mesh(
+            new THREE.PlaneGeometry(2.2 * scaleFactor, 0.72 * scaleFactor),
+            labelMaterial
         );
-
-        ipodGroup.add(textMesh);
+        label.position.set(0, 0.8 * scaleFactor, 0.42 * scaleFactor);
+        ipodGroup.add(label);
 
         // Create the click wheel
         const wheelGeometry = new THREE.CylinderGeometry(1 * scaleFactor, 1 * scaleFactor, 0.1 * scaleFactor, 16);
@@ -147,30 +116,21 @@ class Ipod {
     }
 
     loadEmojiTextures() {
-        const loader = new THREE.TextureLoader();
-        const texturePromises = this.emojis.map(emoji => {
-            // Convert emoji to lowercase hexadecimal Unicode code point
-            const codePoint = emoji.codePointAt(0).toString(16).toLowerCase();
-            const url = `https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/${codePoint}.png`;
-            return new Promise((resolve, reject) => {
-                loader.load(
-                    url,
-                    (texture) => resolve({ emoji, texture }),
-                    undefined,
-                    (error) => {
-                        console.error(`Error loading texture for ${emoji} at ${url}:`, error);
-                        reject(error);
-                    }
-                );
-            });
+        this.emojiTextures = this.emojis.map((emoji) => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.font = '88px sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            context.fillText(emoji, 64, 68);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.needsUpdate = true;
+            return { emoji, texture };
         });
-
-        return Promise.all(texturePromises).then(results => {
-            this.emojiTextures = results;
-            console.log("Emoji textures loaded successfully");
-        }).catch(error => {
-            console.error("Failed to load some emoji textures:", error);
-        });
+        return Promise.resolve();
     }
 
     // Modify initialize to load textures (font loading removed)

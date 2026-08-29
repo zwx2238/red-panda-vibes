@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Red Panda Vibes</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Primary Meta Tags -->
     <meta name="title" content="Red Panda Vibes">
@@ -16,19 +15,17 @@
     <meta property="og:url" content="https://collidingscopes.github.io/red-panda-vibes/">
     <meta property="og:title" content="Red Panda Vibes: free web game">
     <meta property="og:description" content="Be a red panda, explore the world, find bamboo.">
-    <meta property="og:image" content="https://raw.githubusercontent.com/collidingScopes/red-panda-vibes/main/assets/pandaSiteOG4.png">
+    <meta property="og:image" content="assets/pandaSiteOG4.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://collidingscopes.github.io/red-panda-vibes/">
     <meta property="twitter:title" content="Red Panda Vibes: free web game">
     <meta property="twitter:description" content="Be a red panda, explore the world, find bamboo.">
-    <meta property="twitter:image" content="https://raw.githubusercontent.com/collidingScopes/red-panda-vibes/main/assets/pandaSiteOG4.png">
+    <meta property="twitter:image" content="assets/pandaSiteOG4.png">
 
     <link rel="icon" href="assets/favicon.png">
     <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-
-    <script defer src="https://cloud.umami.is/script.js" data-website-id="eb59c81c-27cb-4e1d-9e8c-bfbe70c48cd9"></script>
 
 </head>
 <body>
@@ -91,7 +88,7 @@
         </div>
         
         <div class="high-score-table">
-            <h3>Global Top 10</h3>
+            <h3>Local Top 10</h3>
             <div class="table-container">
                 <table id="high-scores-table">
                     <thead>
@@ -116,12 +113,6 @@
             <button id="retry-button">Try Level Again</button>
             <button id="restart-button">Restart Game</button>
         </div>
-
-        <div id="linksDiv">
-            <button id="instagramButton" class="socialMediaButton"><a href="https://www.instagram.com/stereo.drift/" target="_blank" rel="noopener"><i class="fa-brands fa-instagram"></i></a></button>
-            <button id="xButton" class="socialMediaButton"><a class="x-link" href="https://x.com/measure_plan" target="_blank" rel="noopener">𝕏</i></a></button>
-            <button id="coffeeButton" class="socialMediaButton"><a href="https://www.buymeacoffee.com/stereoDrift" target="_blank" rel="noopener"><i class="fa-solid fa-heart"></i></a></button>
-        </div>
     </div>
 
     <div id="pause-screen-container" class="hidden">
@@ -134,22 +125,15 @@
     <div id="powerup-status-container" class="hidden"></div>    
     <div id="enemy-kill-counter">Monsters smushed: </div>
     <div id="fps-counter">FPS: </div>
-    <a id="feedback-button" href="https://twitter.com/intent/tweet?text=hey%20%40measure_plan%20i%20have%20feedback%20for%20%20https%3A%2F%2Fcollidingscopes.github.io%2Fred-panda-vibes%2F%20%23vibejam" target="_blank">Feedback 𝕏</a>
 
-    <!-- Add these UI elements to indicate portal activation -->
-    <div class="portal-info" id="portal-info">Portal Nearby</div>
-    <div class="portal-indicator" id="portal-indicator"></div>
-
-    <a target="_blank" href="https://jam.pieter.com" style="font-family: 'system-ui', sans-serif; position: fixed; bottom: -1px; right: -1px; padding: 7px; font-size: 14px; font-weight: bold; background: #fff; color: #000; text-decoration: none; z-index: 10; border-top-left-radius: 12px; z-index: 10000; border: 1px solid #fff;">🕹️ Vibe Jam 2025</a>
-    
     <!-- Scripts with defer to improve page load time -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" integrity="sha512-dLxUelApnYxpLt6K2iomGngnHO83iUvZytA3YjDUCjT0HDOHKXnVYdf3hU4JjM8uEhxf9nD1/ey98U3t2vZ0qQ==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="vendor/three/three.min.js" defer></script>
     <!-- Add FBXLoader after three.min.js and before your game scripts -->
     <!-- Add fflate.min.js before FBXLoader -->
-    <script src="https://cdn.jsdelivr.net/npm/fflate@0.7.4/umd/index.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FBXLoader.js" defer></script>
+    <script src="vendor/fflate/fflate.js" defer></script>
+    <script src="vendor/three/FBXLoader.js" defer></script>
     <!-- Existing GLTFLoader can remain if you still want to support GLTF -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" defer></script>
+    <script src="vendor/three/GLTFLoader.js" defer></script>
     <script src="hover-instructions.js" defer></script>
     <script src="panda-loader.js" defer></script>
     <script src="animation-controller.js" defer></script>
@@ -179,9 +163,6 @@
     <!-- Load sounds.js without defer -->
     <script src="sounds.js"></script>
 
-    <script src="portalDestinations.js" defer></script>
-    <script src="portals.js" defer></script>
-    <script src="vibeversePortal.js" defer></script>
     <script src="level1Reminder.js" defer></script>
     <script src="level-selector.js" defer></script>
 </body>

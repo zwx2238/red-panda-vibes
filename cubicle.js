@@ -36,9 +36,6 @@ class Cubicle {
         
         // Social media links
         this.socialLinks = [
-            { name: "Twitter", url: "https://x.com/measure_plan" },
-            { name: "Instagram", url: "https://www.instagram.com/stereo.drift/" },
-            { name: "Coffee💚", url: "https://buymeacoffee.com/stereodrift" },
             { name: "Github", url: "https://github.com/collidingScopes" },
         ];
         
@@ -523,6 +520,9 @@ class Cubicle {
     
     // Create social media links
     createSocialMediaLinks() {
+        if (!this.socialLinks || this.socialLinks.length === 0) {
+            return;
+        }
         // Create a container for social media links
         const socialLinksContainer = document.createElement('div');
         socialLinksContainer.id = "social-links-container";
